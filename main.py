@@ -119,6 +119,52 @@ def progress(current, total, message, type):
     with open(f'{message.id}{type}status.txt', "w") as fileup:
         fileup.write(f"{current * 100 / total:.1f}%")
 
+# handle private
+def handle_private(message: pyrogram.types.messages_and_media.message.Message, chatid: int, msgid: int):
+    msg: pyrogram.types.messages_and_media.message.Message = acc.get_messages(chatid, msgid)
+    msg_type = get_message_type(msg)
+
+    thumb = 'thumb.jpg'
+
+    if "Text" == msg_type:
+        gagan.send_message(message.chat.id, msg.text, entities=msg.entities, reply_to_message_id=message.id)
+        return
+
+    smsg = gagan.send_message(message.chat.id, '__Processing... Powered by **Team SPY**__', reply_to_message_id=message.id)
+    dosta = threading.Thread(target=lambda: downstatus(f'{message.id}downstatus.txt', smsg), daemon=True)
+    dosta.start()
+    file = acc.download_media(msg, progress=progress, progress_args=[message, "down"])
+    os.remove(f'{message.id}downstatus.txt')
+
+    upsta = threading.Thread(target=lambda: upstatus(f'{message.id}upstatus.txt', smsg), daemon=True)
+    upsta.start()
+
+    if "Document" == msg_type:
+        gagan.send_document(message.chat.id, file, thumb=thumb, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
+
+    elif "Video" == msg_type:
+        gagan.send_video(message.chat.id, file, duration=msg.video.duration, width=msg.video.width, height=msg.video.height, thumb=thumb, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
+
+    elif "Animation" == msg_type:
+        gagan.send_animation(message.chat.id, file, reply_to_message_id=message.id)
+
+    elif "Sticker" == msg_type:
+        gagan.send_sticker(message.chat.id, file, reply_to_message_id=message.id)
+
+    elif "Voice" == msg_type:
+        gagan.send_voice(message.chat.id, file, caption=msg.caption, thumb=thumb, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
+
+    elif "Audio" == msg_type:
+        gagan.send_audio(message.chat.id, file, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
+
+    elif "Photo" == msg_type:
+        gagan.send_photo(message.chat.id, file, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id)
+
+    os.remove(file)
+    if os.path.exists(f'{message.id}upstatus.txt'): os.remove(f'{message.id}upstatus.txt')
+    gagan.delete_messages(message.chat.id, [smsg.id])
+
+
 
 #help command
 
@@ -227,48 +273,6 @@ def save(client: pyrogram.client.Client, message: pyrogram.types.messages_and_me
 			# wait time
 			time.sleep(3)
 
-# handle private
-def handle_private(message: pyrogram.types.messages_and_media.message.Message, chatid: int, msgid: int):
-    msg: pyrogram.types.messages_and_media.message.Message = acc.get_messages(chatid, msgid)
-    msg_type = get_message_type(msg)
-
-    thumb = 'thumb.jpg'
-    
-    if "Text" == msg_type:
-        gagan.send_message(message.chat.id, msg.text, entities=msg.entities, reply_to_message_id=message.id)
-        return
-
-    smsg = gagan.send_message(message.chat.id, '__Processing... Powered by **Team SPY**__', reply_to_message_id=message.id)
-    dosta = threading.Thread(target=lambda: downstatus(f'{message.id}downstatus.txt', smsg), daemon=True)
-    dosta.start()
-    file = acc.download_media(msg, progress=progress, progress_args=[message, "down"])
-    os.remove(f'{message.id}downstatus.txt')
-
-    if "Document" == msg_type:
-        gagan.send_document(message.chat.id, file, thumb=thumb, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
-
-    elif "Video" == msg_type:
-        gagan.send_video(message.chat.id, file, duration=msg.video.duration, width=msg.video.width, height=msg.video.height, thumb=thumb, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
-
-    elif "Animation" == msg_type:
-        gagan.send_animation(message.chat.id, file, reply_to_message_id=message.id)
-
-    elif "Sticker" == msg_type:
-        gagan.send_sticker(message.chat.id, file, reply_to_message_id=message.id)
-
-    elif "Voice" == msg_type:
-        gagan.send_voice(message.chat.id, file, caption=msg.caption, thumb=thumb, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
-
-    elif "Audio" == msg_type:
-        gagan.send_audio(message.chat.id, file, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
-
-    elif "Photo" == msg_type:
-        gagan.send_photo(message.chat.id, file, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id)
-
-    os.remove(file)
-    if os.path.exists(f'{message.id}upstatus.txt'): os.remove(f'{message.id}upstatus.txt')
-    gagan.delete_messages(message.chat.id, [smsg.id])
-
 
 # get the type of message
 def get_message_type(msg: pyrogram.types.messages_and_media.message.Message):
@@ -314,11 +318,6 @@ def get_message_type(msg: pyrogram.types.messages_and_media.message.Message):
     except:
         pass
 
-    try:
-        msg.text
-        return "Text"
-    except:
-        pass
 
 
 
