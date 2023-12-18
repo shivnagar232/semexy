@@ -33,91 +33,44 @@ def format_time(seconds):
     hours, minutes = divmod(minutes, 60)
     return f"{int(hours)}h {int(minutes)}m {int(seconds)}s"
 
-# Download status
-def downstatus(statusfile, message):
-    while True:
-        if os.path.exists(statusfile):
-            break
+# download status
+def downstatus(statusfile,message):
+	while True:
+		if os.path.exists(statusfile):
+			break
 
-    time.sleep(3)
-    prev_time = time.time()
-    prev_downloaded = 0
+	time.sleep(3)      
+	while os.path.exists(statusfile):
+		with open(statusfile,"r") as downread:
+			txt = downread.read()
+		try:
+			bot.edit_message_text(message.chat.id, message.id, f"__Downloaded__ : **{txt}**")
+			time.sleep(10)
+		except:
+			time.sleep(5)
 
-    while os.path.exists(statusfile):
-        with open(statusfile, "r") as downread:
-            txt = downread.read()
 
-        try:
-            current_time = time.time()
-            elapsed_time = current_time - prev_time
+# upload status
+def upstatus(statusfile,message):
+	while True:
+		if os.path.exists(statusfile):
+			break
 
-            downloaded = float(txt.strip('%'))  # Convert to float and remove the percentage sign
-            speed = (downloaded - prev_downloaded) / elapsed_time if elapsed_time > 0 else 0
+	time.sleep(3)      
+	while os.path.exists(statusfile):
+		with open(statusfile,"r") as upread:
+			txt = upread.read()
+		try:
+			bot.edit_message_text(message.chat.id, message.id, f"__Uploaded__ : **{txt}**")
+			time.sleep(10)
+		except:
+			time.sleep(5)
 
-            remaining_time = (100 - downloaded) / speed if speed > 0 else 0
-            formatted_remaining_time = format_time(remaining_time)
 
-            gagan.edit_message_text(
-                message.chat.id,
-                message.id,
-                f"__Bot Made by **Team SPY**__\n\nDownloaded: {downloaded:.1f}%\nSpeed: {speed:.2f} KB/s\nRemaining Time: {formatted_remaining_time}",
-            )
-
-            prev_downloaded = downloaded
-            prev_time = current_time
-
-            time.sleep(10)
-        except Exception as e:
-            print(f"Error updating download status: {e}")
-            time.sleep(5)
-
-# Upload status
-def upstatus(statusfile, message):
-    while True:
-        if os.path.exists(statusfile):
-            break
-
-    time.sleep(3)
-    prev_time = time.time()
-    prev_uploaded = 0
-
-    while os.path.exists(statusfile):
-        with open(statusfile, "r") as upread:
-            txt = upread.read()
-
-        try:
-            current_time = time.time()
-            elapsed_time = current_time - prev_time
-
-            if txt:
-                uploaded = float(txt.strip('%'))  # Convert to float and remove the percentage sign
-                speed = (uploaded - prev_uploaded) / elapsed_time if elapsed_time > 0 else 0
-
-                remaining_time = (100 - uploaded) / speed if speed > 0 else 0
-                formatted_remaining_time = format_time(remaining_time)
-
-                gagan.edit_message_text(
-                    message.chat.id,
-                    message.id,
-                    f"__Bot Made by **Team SPY**__\n\nUploaded: {uploaded:.1f}%\nSpeed: {speed:.2f} KB/s\nRemaining Time: {formatted_remaining_time}",
-                )
-
-                prev_uploaded = uploaded
-                prev_time = current_time
-
-                time.sleep(10)
-            else:
-                # Handle the case where the uploaded value is empty or not available
-                time.sleep(5)
-
-        except Exception as e:
-            print(f"Error updating upload status: {e}")
-            time.sleep(5)
-
-# Progress writer with download and upload progress
+# progress writter
 def progress(current, total, message, type):
-    with open(f'{message.id}{type}status.txt', "w") as fileup:
-        fileup.write(f"{current * 100 / total:.1f}%")
+	with open(f'{message.id}{type}status.txt',"w") as fileup:
+		fileup.write(f"{current * 100 / total:.1f}%")
 
 # handle private
 def handle_private(message: pyrogram.types.messages_and_media.message.Message, chatid: int, msgid: int):
@@ -125,6 +78,7 @@ def handle_private(message: pyrogram.types.messages_and_media.message.Message, c
     msg_type = get_message_type(msg)
 
     thumb = 'thumb.jpg'
+    caption = f"{msg.caption}\n\n__Unrestricted by **[Team SPY](https://t.me/+8UDNP64FhAU4ZTg1)**__" if msg.caption else "__Unrestricted by **[Team SPY](https://t.me/+8UDNP64FhAU4ZTg1)**__"
 
     if "Text" == msg_type:
         gagan.send_message(message.chat.id, msg.text, entities=msg.entities, reply_to_message_id=message.id)
@@ -140,10 +94,10 @@ def handle_private(message: pyrogram.types.messages_and_media.message.Message, c
     upsta.start()
 
     if "Document" == msg_type:
-        gagan.send_document(message.chat.id, file, thumb=thumb, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
+        gagan.send_document(message.chat.id, file, thumb=thumb, caption=caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
 
     elif "Video" == msg_type:
-        gagan.send_video(message.chat.id, file, duration=msg.video.duration, width=msg.video.width, height=msg.video.height, thumb=thumb, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
+        gagan.send_video(message.chat.id, file, duration=msg.video.duration, width=msg.video.width, height=msg.video.height, thumb=thumb, caption=caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
 
     elif "Animation" == msg_type:
         gagan.send_animation(message.chat.id, file, reply_to_message_id=message.id)
@@ -152,13 +106,13 @@ def handle_private(message: pyrogram.types.messages_and_media.message.Message, c
         gagan.send_sticker(message.chat.id, file, reply_to_message_id=message.id)
 
     elif "Voice" == msg_type:
-        gagan.send_voice(message.chat.id, file, caption=msg.caption, thumb=thumb, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
+        gagan.send_voice(message.chat.id, file, caption=caption, thumb=thumb, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
 
     elif "Audio" == msg_type:
-        gagan.send_audio(message.chat.id, file, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
+        gagan.send_audio(message.chat.id, file, caption=caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id, progress=progress, progress_args=[message, "up"])
 
     elif "Photo" == msg_type:
-        gagan.send_photo(message.chat.id, file, caption=msg.caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id)
+        gagan.send_photo(message.chat.id, file, caption=caption, caption_entities=msg.caption_entities, reply_to_message_id=message.id)
 
     os.remove(file)
     if os.path.exists(f'{message.id}upstatus.txt'): os.remove(f'{message.id}upstatus.txt')
