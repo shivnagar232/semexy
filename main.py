@@ -290,6 +290,7 @@ then send post/s link__
 __send link with '/b/', bot's username and message id, you might want to install some unofficial client to get the id like below__
 
 ```
+Team SPY
 https://t.me/b/botusername/4321
 ```
 
@@ -298,6 +299,7 @@ https://t.me/b/botusername/4321
 __send public/private posts link as explained above with formate "from - to" to send multiple messages like below__
 
 ```
+Team SPY 
 Public : https://t.me/abcdef123/1001-1010
 Private: https://t.me/c/123456.../101-120
 ```
