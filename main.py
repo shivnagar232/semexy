@@ -50,7 +50,7 @@ def upstatus(statusfile,message):
 		with open(statusfile,"r") as upread:
 			txt = upread.read()
 		try:
-			bot.edit_message_text(message.chat.id, message.id, f"__Uploaded__ : **{txt}**")
+			bot.edit_message_text(message.chat.id, message.id, f"__Unrestricted(U)__ : **{txt}**")
 			time.sleep(10)
 		except:
 			time.sleep(5)
